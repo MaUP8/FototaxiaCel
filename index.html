@@ -41,7 +41,7 @@
 
     #controls {
       position: fixed;
-      bottom: 20px;
+      bottom: -100px; /* Oculto fuera de pantalla */
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -50,6 +50,7 @@
       background-color: rgba(0, 0, 0, 0.8);
       padding: 10px;
       border-radius: 10px;
+      transition: bottom 0.3s ease; /* Transición para animar la entrada y salida */
     }
 
     #controls button {
@@ -67,8 +68,9 @@
 
     #toggleControlsBtn {
       position: fixed;
-      bottom: 80px;
-      right: 20px;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       background-color: rgba(0, 0, 0, 0.8);
       color: white;
       border: none;
@@ -77,6 +79,7 @@
       border-radius: 50%;
       cursor: pointer;
       z-index: 10;
+      transition: bottom 0.3s ease; /* Transición para mover el botón */
     }
 
     #settings {
@@ -126,7 +129,7 @@
     <button id="settingsBtn">Configuración</button>
   </div>
 
-  <button id="toggleControlsBtn">⚙️</button>
+  <button id="toggleControlsBtn">⬆️</button>
 
   <div id="settings">
     <label for="bgColor">Color de fondo:</label>
@@ -150,6 +153,8 @@
   <script>
     let recognition;
     const transcription = document.querySelector("#text");
+    const controls = document.getElementById("controls");
+    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
 
     // Función para iniciar la cámara
     function initCamera() {
@@ -244,11 +249,53 @@
       settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Mostrar/Ocultar controles
-    document.querySelector('#toggleControlsBtn').addEventListener('click', () => {
-      const controls = document.getElementById('controls');
-      controls.style.display = controls.style.display === 'none' ? 'flex' : 'none';
-    });
+    // Mostrar/Ocultar controles con el botón de flecha
+    toggleControlsBtn.addEventListener('click', toggleControls);
+
+    // Función para mostrar/ocultar los controles y cambiar el ícono
+    function toggleControls() {
+      if (controls.style.bottom === "20px") {
+        controls.style.bottom = "-100px";
+        toggleControlsBtn.innerHTML = "⬆️";
+      } else {
+        controls.style.bottom = "20px";
+        toggleControlsBtn.innerHTML = "⬇️";
+      }
+    }
+
+    // Eventos de deslizar para mostrar/ocultar controles
+    document.addEventListener("touchstart", handleTouchStart, false);
+    document.addEventListener("touchmove", handleTouchMove, false);
+
+    let xDown = null;
+    let yDown = null;
+
+    function handleTouchStart(evt) {
+      const firstTouch = evt.touches[0];
+      xDown = firstTouch.clientX;
+      yDown = firstTouch.clientY;
+    }
+
+    function handleTouchMove(evt) {
+      if (!xDown || !yDown) return;
+
+      let xUp = evt.touches[0].clientX;
+      let yUp = evt.touches[0].clientY;
+      let yDiff = yDown - yUp;
+
+      if (Math.abs(yDiff) > Math.abs(xDown - xUp)) {
+        if (yDiff > 0) {
+          controls.style.bottom = "20px"; // Deslizar hacia arriba para mostrar controles
+          toggleControlsBtn.innerHTML = "⬇️";
+        } else {
+          controls.style.bottom = "-100px"; // Deslizar hacia abajo para ocultar controles
+          toggleControlsBtn.innerHTML = "⬆️";
+        }
+      }
+
+      xDown = null;
+      yDown = null;
+    }
 
     // Control de configuración de estilo
     document.querySelector('#bgColor').addEventListener('input', (e) => {
@@ -270,3 +317,4 @@
   </script>
 </body>
 </html>
+
