@@ -39,6 +39,80 @@
       color: white;
     }
 
+    #controls {
+      position: fixed;
+      bottom: -200px; /* Totalmente fuera de la pantalla */
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      transition: bottom 0.4s ease; /* Transición suave para entrada y salida */
+    }
+
+    #controls button {
+      font-size: 18px;
+      background-color: black;
+      color: #565252;
+      border: 1px solid #565252;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+
+    #fullscreenBtn {
+      font-size: 24px;
+    }
+
+    #toggleControlsBtn {
+      position: fixed;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%) rotate(0deg);
+      color: rgba(255, 255, 255, 0.7); /* Blanco translúcido */
+      border: none;
+      font-size: 36px; /* Tamaño grande para el carácter ^ */
+      cursor: pointer;
+      z-index: 10;
+      background: none; /* Sin fondo */
+      transition: transform 0.3s ease; /* Rotación suave */
+    }
+
+    #settings {
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      max-width: 300px;
+      background-color: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      z-index: 10;
+      color: white;
+    }
+
+    #settings label {
+      display: block;
+      font-size: 14px;
+      margin-top: 10px;
+      color: #ddd;
+    }
+
+    #settings input, #settings select {
+      width: 100%;
+      padding: 5px;
+      margin-top: 5px;
+      font-size: 14px;
+      color: black;
+    }
+
+    #settings input[type="range"] {
+      padding: 0;
+    }
+
     #popup {
       display: none;
       position: fixed;
@@ -76,34 +150,6 @@
       cursor: pointer;
       display: none;
     }
-
-    #settings {
-      position: fixed;
-      top: 10%;
-      left: 10%;
-      width: 80%;
-      max-width: 300px;
-      background-color: rgba(0, 0, 0, 0.9);
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      z-index: 10;
-      color: white;
-    }
-
-    #settings label, #settings input {
-      display: block;
-      font-size: 14px;
-      margin-top: 10px;
-      color: #ddd;
-    }
-
-    #settings input[type="number"], #settings input[type="url"] {
-      width: 100%;
-      padding: 5px;
-      font-size: 14px;
-      color: black;
-    }
   </style>
 </head>
 <body>
@@ -119,6 +165,15 @@
     <button id="closePopupBtn">Cerrar</button>
   </div>
 
+  <!-- Controles para iniciar/detener y ajustes de pantalla completa y configuración -->
+  <div id="controls">
+    <button id="startBtn">Iniciar</button>
+    <button id="stopBtn">Detener</button>
+    <button id="fullscreenBtn">Pantalla completa</button>
+    <button id="settingsBtn">Configuración</button>
+  </div>
+  <button id="toggleControlsBtn">^</button>
+
   <!-- Configuración inicial para el tiempo del pop-up y la URL del video -->
   <div id="settings">
     <label for="popupDelay">Tiempo en segundos para mostrar el pop-up:</label>
@@ -126,6 +181,23 @@
     
     <label for="videoURL">URL del video de YouTube:</label>
     <input type="url" id="videoURL" placeholder="Ingresa la URL del video de YouTube" required />
+    
+    <label for="bgColor">Color de fondo:</label>
+    <input type="color" id="bgColor" value="#000000" />
+
+    <label for="opacity">Opacidad del fondo:</label>
+    <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.7" />
+
+    <label for="fontSize">Tamaño de letra:</label>
+    <input type="range" id="fontSize" min="2" max="10" step="0.1" value="6" />vw
+
+    <label for="fontType">Tipo de letra:</label>
+    <select id="fontType">
+      <option value="Arial">Arial</option>
+      <option value="Verdana">Verdana</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Georgia">Georgia</option>
+    </select>
     
     <button id="startSettingsBtn">Guardar y Comenzar</button>
   </div>
@@ -174,7 +246,7 @@
       });
 
       recognition.addEventListener("end", function () {
-        recognition.start();  // Reinicia el reconocimiento al terminar
+        recognition.start();
       });
     }
 
@@ -241,6 +313,50 @@
       document.getElementById("settings").style.display = "block";
       initCamera();
     };
+
+    // Event listeners for controls
+    document.querySelector('#startBtn').addEventListener('click', startRecognition);
+    document.querySelector('#stopBtn').addEventListener('click', stopRecognition);
+
+    document.querySelector('#fullscreenBtn').addEventListener('click', function () {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      }
+    });
+
+    document.querySelector('#settingsBtn').addEventListener('click', () => {
+      const settings = document.getElementById('settings');
+      settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Control de configuración de estilo
+    document.querySelector('#bgColor').addEventListener('input', (e) => {
+      document.querySelector('#transcription').style.backgroundColor = e.target.value;
+    });
+
+    document.querySelector('#opacity').addEventListener('input', (e) => {
+      document.querySelector('#transcription').style.backgroundColor = document.querySelector('#bgColor').value;
+      document.querySelector('#transcription').style.opacity = e.target.value;
+    });
+
+    document.querySelector('#fontSize').addEventListener('input', (e) => {
+      document.querySelector('#transcription').style.fontSize = e.target.value + 'vw';
+    });
+
+    document.querySelector('#fontType').addEventListener('change', (e) => {
+      document.querySelector('#transcription').style.fontFamily = e.target.value;
+    });
+
+    document.getElementById("toggleControlsBtn").addEventListener("click", () => {
+      const controls = document.getElementById("controls");
+      if (controls.style.bottom === "20px") {
+        controls.style.bottom = "-200px";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)";
+      } else {
+        controls.style.bottom = "20px";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)";
+      }
+    });
   </script>
 </body>
 </html>
