@@ -125,14 +125,13 @@
     <input type="number" id="popupDelay" min="1" value="10" />
     
     <label for="videoURL">URL del video de YouTube:</label>
-    <input type="url" id="videoURL" placeholder="https://www.youtube.com/embed/VIDEO_ID" required />
+    <input type="url" id="videoURL" placeholder="Ingresa la URL del video de YouTube" required />
     
     <button id="startSettingsBtn">Guardar y Comenzar</button>
   </div>
 
   <script>
     let recognition;
-    const transcription = document.querySelector("#text");
     let popupTimer, countdownTimer;
 
     function initCamera() {
@@ -212,6 +211,17 @@
       }, 1000);
     }
 
+    function convertYouTubeURL(url) {
+      // Convierte URLs de youtu.be y watch?v= en formato de incrustación
+      let videoId;
+      if (url.includes("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
+      } else if (url.includes("youtube.com/watch?v=")) {
+        videoId = url.split("watch?v=")[1].split("&")[0];
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
     document.getElementById("closePopupBtn").addEventListener("click", () => {
       document.getElementById("popup").style.display = "none";
       document.getElementById("adVideo").src = "";
@@ -220,13 +230,9 @@
     document.getElementById("startSettingsBtn").addEventListener("click", () => {
       const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
       const videoURL = document.getElementById("videoURL").value;
+      const embedURL = convertYouTubeURL(videoURL);
 
-      if (!videoURL.includes("youtube.com/embed/")) {
-        alert("Por favor, ingresa una URL de YouTube válida (https://www.youtube.com/embed/VIDEO_ID)");
-        return;
-      }
-
-      document.getElementById("adVideo").src = videoURL;
+      document.getElementById("adVideo").src = embedURL;
       document.getElementById("settings").style.display = "none";
       
       popupTimer = setTimeout(showPopup, delay);
@@ -240,4 +246,3 @@
   </script>
 </body>
 </html>
-
