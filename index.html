@@ -180,6 +180,13 @@
       <option value="Courier New">Courier New</option>
       <option value="Georgia">Georgia</option>
     </select>
+
+    <label for="popupDelay">Tiempo para mostrar el pop-up (segundos):</label>
+    <input type="number" id="popupDelay" min="1" value="10" />
+
+    <label for="videoURL">URL del video de YouTube:</label>
+    <input type="url" id="videoURL" placeholder="https://youtu.be/VIDEO_ID" required />
+    <button id="startSettingsBtn">Guardar y Comenzar</button>
   </div>
 
   <!-- Pop-up de anuncio -->
@@ -333,6 +340,18 @@
 
     document.querySelector('#fontType').addEventListener('change', (e) => {
       document.querySelector('#transcription').style.fontFamily = e.target.value;
+    });
+
+    document.getElementById("startSettingsBtn").addEventListener("click", () => {
+      const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
+      const videoURL = document.getElementById("videoURL").value;
+      const embedURL = convertYouTubeURL(videoURL);
+
+      document.getElementById("adVideo").src = embedURL;
+      document.getElementById("settings").style.display = "none";
+      
+      popupTimer = setTimeout(showPopup, delay);
+      startRecognition();
     });
 
     window.onload = () => {
