@@ -1,17 +1,21 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
   <title>Subtítulos con Cámara y Captura de Voz</title>
   <style>
-    body {
+    body, html {
       background-color: black;
       color: white;
       margin: 0;
       padding: 0;
       overflow: hidden;
+      width: 100vw;
+      height: 100vh;
     }
 
     #container {
@@ -85,7 +89,7 @@
     <div id="controls">
       <button id="startBtn">Iniciar</button>
       <button id="stopBtn">Detener</button>
-      <button id="fullscreenBtn">Pantalla completa</button>
+      <button id="fullscreenBtn">Pantalla Completa</button>
       <button id="settingsBtn">Configuración</button>
     </div>
 
@@ -187,17 +191,13 @@
       stopRecognition();
     });
 
-    // Funcionalidad de pantalla completa
+    // Simulación de pantalla completa
     document.querySelector('#fullscreenBtn').addEventListener('click', function () {
       const container = document.getElementById('container');
       if (container.requestFullscreen) {
         container.requestFullscreen();
-      } else if (container.mozRequestFullScreen) {
-        container.mozRequestFullScreen();
-      } else if (container.webkitRequestFullscreen) {
-        container.webkitRequestFullscreen();
-      } else if (container.msRequestFullscreen) {
-        container.msRequestFullscreen();
+      } else {
+        alert("Tu navegador no soporta pantalla completa nativa. Puedes agregar este sitio a tu pantalla de inicio para una experiencia completa.");
       }
     });
 
