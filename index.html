@@ -45,8 +45,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80vw;
-      max-width: 600px;
+      width: 50vw;
+      height: 50vh;
       background-color: rgba(0, 0, 0, 0.9);
       padding: 20px;
       border-radius: 10px;
@@ -56,7 +56,7 @@
 
     #popup iframe {
       width: 100%;
-      height: 315px;
+      height: 80%;
       border: none;
     }
 
@@ -145,7 +145,6 @@
         });
     }
 
-    // Función para inicializar el reconocimiento de voz
     function initSpeechRecognition() {
       if (typeof webkitSpeechRecognition !== "undefined") {
         recognition = new webkitSpeechRecognition();
@@ -212,14 +211,13 @@
     }
 
     function convertYouTubeURL(url) {
-      // Convierte URLs de youtu.be y watch?v= en formato de incrustación
       let videoId;
       if (url.includes("youtu.be/")) {
         videoId = url.split("youtu.be/")[1].split("?")[0];
       } else if (url.includes("youtube.com/watch?v=")) {
         videoId = url.split("watch?v=")[1].split("&")[0];
       }
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
     }
 
     document.getElementById("closePopupBtn").addEventListener("click", () => {
