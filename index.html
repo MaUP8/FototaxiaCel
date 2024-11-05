@@ -39,45 +39,42 @@
       color: white;
     }
 
-    #controls {
+    #popup {
+      display: none;
       position: fixed;
-      bottom: -200px; /* Totalmente fuera de la pantalla */
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      background-color: rgba(0, 0, 0, 0.8);
-      padding: 10px;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      max-width: 600px;
+      background-color: rgba(0, 0, 0, 0.9);
+      padding: 20px;
       border-radius: 10px;
-      transition: bottom 0.4s ease; /* Transición suave para entrada y salida */
+      text-align: center;
+      z-index: 100;
     }
 
-    #controls button {
-      font-size: 18px;
-      background-color: black;
-      color: #565252;
-      border: 1px solid #565252;
-      padding: 8px 12px;
-      border-radius: 5px;
-    }
-
-    #fullscreenBtn {
-      font-size: 24px;
-    }
-
-    #toggleControlsBtn {
-      position: fixed;
-      bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%) rotate(0deg);
-      color: rgba(255, 255, 255, 0.7); /* Blanco translúcido */
+    #popup iframe {
+      width: 100%;
+      height: 315px;
       border: none;
-      font-size: 36px; /* Tamaño grande para el carácter ^ */
+    }
+
+    #popup p {
+      font-size: 18px;
+      color: white;
+      margin: 10px 0;
+    }
+
+    #popup button {
+      font-size: 16px;
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
-      z-index: 10;
-      background: none; /* Sin fondo */
-      transition: transform 0.3s ease; /* Rotación suave */
+      display: none;
     }
 
     #settings {
@@ -94,23 +91,18 @@
       color: white;
     }
 
-    #settings label {
+    #settings label, #settings input {
       display: block;
       font-size: 14px;
       margin-top: 10px;
       color: #ddd;
     }
 
-    #settings input, #settings select {
+    #settings input[type="number"], #settings input[type="url"] {
       width: 100%;
       padding: 5px;
-      margin-top: 5px;
       font-size: 14px;
       color: black;
-    }
-
-    #settings input[type="range"] {
-      padding: 0;
     }
   </style>
 </head>
@@ -120,41 +112,29 @@
     <p id="text"></p>
   </div>
 
-  <div id="controls">
-    <button id="startBtn">Iniciar</button>
-    <button id="stopBtn">Detener</button>
-    <button id="fullscreenBtn">Pantalla completa</button>
-    <button id="settingsBtn">Configuración</button>
+  <!-- Pop-up de anuncio -->
+  <div id="popup">
+    <iframe id="adVideo" src="" allow="autoplay"></iframe>
+    <p>Podrás cerrar este anuncio en <span id="countdown">5</span> segundos</p>
+    <button id="closePopupBtn">Cerrar</button>
   </div>
 
-  <button id="toggleControlsBtn">^</button>
-
+  <!-- Configuración inicial para el tiempo del pop-up y la URL del video -->
   <div id="settings">
-    <label for="bgColor">Color de fondo:</label>
-    <input type="color" id="bgColor" value="#000000" />
-
-    <label for="opacity">Opacidad del fondo:</label>
-    <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.7" />
-
-    <label for="fontSize">Tamaño de letra:</label>
-    <input type="range" id="fontSize" min="2" max="10" step="0.1" value="6" />vw
-
-    <label for="fontType">Tipo de letra:</label>
-    <select id="fontType">
-      <option value="Arial">Arial</option>
-      <option value="Verdana">Verdana</option>
-      <option value="Courier New">Courier New</option>
-      <option value="Georgia">Georgia</option>
-    </select>
+    <label for="popupDelay">Tiempo en segundos para mostrar el pop-up:</label>
+    <input type="number" id="popupDelay" min="1" value="10" />
+    
+    <label for="videoURL">URL del video de YouTube:</label>
+    <input type="url" id="videoURL" placeholder="https://www.youtube.com/embed/VIDEO_ID" required />
+    
+    <button id="startSettingsBtn">Guardar y Comenzar</button>
   </div>
 
   <script>
     let recognition;
     const transcription = document.querySelector("#text");
-    const controls = document.getElementById("controls");
-    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
+    let popupTimer, countdownTimer;
 
-    // Función para iniciar la cámara
     function initCamera() {
       const video = document.getElementById('camera');
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -192,7 +172,6 @@
           }
         }
 
-        // Actualiza el texto en pantalla
         transcription.textContent = finalTranscript || interimTranscript;
       });
 
@@ -201,7 +180,6 @@
       });
     }
 
-    // Función para iniciar el reconocimiento de voz
     function startRecognition() {
       if (!recognition) {
         initSpeechRecognition();
@@ -209,75 +187,56 @@
       recognition.start();
     }
 
-    // Función para detener el reconocimiento de voz
     function stopRecognition() {
       if (recognition) {
         recognition.stop();
       }
     }
 
-    // Inicia la cámara al cargar la página
-    window.onload = initCamera;
+    function showPopup() {
+      document.getElementById("popup").style.display = "block";
+      let countdown = 5;
+      const countdownElem = document.getElementById("countdown");
+      const closeBtn = document.getElementById("closePopupBtn");
 
-    // Eventos de botones
-    document.querySelector('#startBtn').addEventListener('click', () => {
+      countdownElem.textContent = countdown;
+      closeBtn.style.display = "none";
+
+      countdownTimer = setInterval(() => {
+        countdown--;
+        countdownElem.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(countdownTimer);
+          closeBtn.style.display = "inline";
+        }
+      }, 1000);
+    }
+
+    document.getElementById("closePopupBtn").addEventListener("click", () => {
+      document.getElementById("popup").style.display = "none";
+      document.getElementById("adVideo").src = "";
+    });
+
+    document.getElementById("startSettingsBtn").addEventListener("click", () => {
+      const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
+      const videoURL = document.getElementById("videoURL").value;
+
+      if (!videoURL.includes("youtube.com/embed/")) {
+        alert("Por favor, ingresa una URL de YouTube válida (https://www.youtube.com/embed/VIDEO_ID)");
+        return;
+      }
+
+      document.getElementById("adVideo").src = videoURL;
+      document.getElementById("settings").style.display = "none";
+      
+      popupTimer = setTimeout(showPopup, delay);
       startRecognition();
     });
 
-    document.querySelector('#stopBtn').addEventListener('click', () => {
-      stopRecognition();
-    });
-
-    // Funcionalidad de pantalla completa
-    document.querySelector('#fullscreenBtn').addEventListener('click', function () {
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-      } else if (document.documentElement.mozRequestFullScreen) {
-        document.documentElement.mozRequestFullScreen();
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
-      } else if (document.documentElement.msRequestFullscreen) {
-        document.documentElement.msRequestFullscreen();
-      }
-    });
-
-    // Mostrar/Ocultar configuración
-    document.querySelector('#settingsBtn').addEventListener('click', () => {
-      const settings = document.getElementById('settings');
-      settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Mostrar/Ocultar controles con el botón de flecha
-    toggleControlsBtn.addEventListener('click', toggleControls);
-
-    // Función para mostrar/ocultar los controles y rotar el carácter ^
-    function toggleControls() {
-      if (controls.style.bottom === "20px") {
-        controls.style.bottom = "-200px"; // Oculto fuera de pantalla
-        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)"; // Apunta hacia arriba
-      } else {
-        controls.style.bottom = "20px"; // Muestra controles
-        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)"; // Apunta hacia abajo
-      }
-    }
-
-    // Control de configuración de estilo
-    document.querySelector('#bgColor').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.backgroundColor = e.target.value;
-    });
-
-    document.querySelector('#opacity').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.backgroundColor = document.querySelector('#bgColor').value;
-      document.querySelector('#transcription').style.opacity = e.target.value;
-    });
-
-    document.querySelector('#fontSize').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.fontSize = e.target.value + 'vw';
-    });
-
-    document.querySelector('#fontType').addEventListener('change', (e) => {
-      document.querySelector('#transcription').style.fontFamily = e.target.value;
-    });
+    window.onload = () => {
+      document.getElementById("settings").style.display = "block";
+      initCamera();
+    };
   </script>
 </body>
 </html>
