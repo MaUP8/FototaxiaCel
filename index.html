@@ -42,10 +42,14 @@
     #controls {
       position: fixed;
       bottom: 20px;
-      left: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 10px;
     }
 
     #controls button {
@@ -59,6 +63,20 @@
 
     #fullscreenBtn {
       font-size: 24px;
+    }
+
+    #toggleControlsBtn {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      font-size: 24px;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 10;
     }
 
     #settings {
@@ -107,6 +125,8 @@
     <button id="fullscreenBtn">Pantalla completa</button>
     <button id="settingsBtn">Configuración</button>
   </div>
+
+  <button id="toggleControlsBtn">⚙️</button>
 
   <div id="settings">
     <label for="bgColor">Color de fondo:</label>
@@ -222,6 +242,12 @@
     document.querySelector('#settingsBtn').addEventListener('click', () => {
       const settings = document.getElementById('settings');
       settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Mostrar/Ocultar controles
+    document.querySelector('#toggleControlsBtn').addEventListener('click', () => {
+      const controls = document.getElementById('controls');
+      controls.style.display = controls.style.display === 'none' ? 'flex' : 'none';
     });
 
     // Control de configuración de estilo
