@@ -51,6 +51,7 @@
       padding: 10px;
       border-radius: 10px;
       transition: bottom 0.4s ease;
+      z-index: 1;
     }
 
     #controls button {
@@ -75,7 +76,7 @@
       border: none;
       font-size: 36px;
       cursor: pointer;
-      z-index: 10;
+      z-index: 1;
       background: none;
       transition: transform 0.3s ease;
     }
@@ -121,7 +122,7 @@
       padding: 20px;
       border-radius: 10px;
       text-align: center;
-      z-index: 100;
+      z-index: 100; /* Asegura que esté encima de todo */
     }
 
     #popup iframe {
@@ -361,4 +362,3 @@
   </script>
 </body>
 </html>
-
