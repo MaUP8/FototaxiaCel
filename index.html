@@ -41,7 +41,7 @@
 
     #controls {
       position: fixed;
-      bottom: -200px; /* Totalmente fuera de la pantalla */
+      bottom: -200px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -50,7 +50,7 @@
       background-color: rgba(0, 0, 0, 0.8);
       padding: 10px;
       border-radius: 10px;
-      transition: bottom 0.4s ease; /* Transición suave para entrada y salida */
+      transition: bottom 0.4s ease;
     }
 
     #controls button {
@@ -71,13 +71,13 @@
       bottom: 10%;
       left: 50%;
       transform: translateX(-50%) rotate(0deg);
-      color: rgba(255, 255, 255, 0.7); /* Blanco translúcido */
+      color: rgba(255, 255, 255, 0.7);
       border: none;
-      font-size: 36px; /* Tamaño grande para el carácter ^ */
+      font-size: 36px;
       cursor: pointer;
       z-index: 10;
-      background: none; /* Sin fondo */
-      transition: transform 0.3s ease; /* Rotación suave */
+      background: none;
+      transition: transform 0.3s ease;
     }
 
     #settings {
@@ -109,18 +109,14 @@
       color: black;
     }
 
-    #settings input[type="range"] {
-      padding: 0;
-    }
-
     #popup {
       display: none;
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 50vw;
-      height: 50vh;
+      width: 80vw;
+      max-width: 600px;
       background-color: rgba(0, 0, 0, 0.9);
       padding: 20px;
       border-radius: 10px;
@@ -130,7 +126,7 @@
 
     #popup iframe {
       width: 100%;
-      height: 80%;
+      height: 315px;
       border: none;
     }
 
@@ -158,30 +154,16 @@
     <p id="text"></p>
   </div>
 
-  <!-- Pop-up de anuncio -->
-  <div id="popup">
-    <iframe id="adVideo" src="" allow="autoplay"></iframe>
-    <p>Podrás cerrar este anuncio en <span id="countdown">5</span> segundos</p>
-    <button id="closePopupBtn">Cerrar</button>
-  </div>
-
-  <!-- Controles para iniciar/detener y ajustes de pantalla completa y configuración -->
   <div id="controls">
     <button id="startBtn">Iniciar</button>
     <button id="stopBtn">Detener</button>
     <button id="fullscreenBtn">Pantalla completa</button>
     <button id="settingsBtn">Configuración</button>
   </div>
+
   <button id="toggleControlsBtn">^</button>
 
-  <!-- Configuración inicial para el tiempo del pop-up y la URL del video -->
   <div id="settings">
-    <label for="popupDelay">Tiempo en segundos para mostrar el pop-up:</label>
-    <input type="number" id="popupDelay" min="1" value="10" />
-    
-    <label for="videoURL">URL del video de YouTube:</label>
-    <input type="url" id="videoURL" placeholder="Ingresa la URL del video de YouTube" required />
-    
     <label for="bgColor">Color de fondo:</label>
     <input type="color" id="bgColor" value="#000000" />
 
@@ -198,14 +180,23 @@
       <option value="Courier New">Courier New</option>
       <option value="Georgia">Georgia</option>
     </select>
-    
-    <button id="startSettingsBtn">Guardar y Comenzar</button>
+  </div>
+
+  <!-- Pop-up de anuncio -->
+  <div id="popup">
+    <iframe id="adVideo" src="" allow="autoplay"></iframe>
+    <p>Podrás cerrar este anuncio en <span id="countdown">5</span> segundos</p>
+    <button id="closePopupBtn">Cerrar</button>
   </div>
 
   <script>
     let recognition;
     let popupTimer, countdownTimer;
+    const transcription = document.querySelector("#text");
+    const controls = document.getElementById("controls");
+    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
 
+    // Función para iniciar la cámara
     function initCamera() {
       const video = document.getElementById('camera');
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -217,6 +208,7 @@
         });
     }
 
+    // Función para inicializar el reconocimiento de voz
     function initSpeechRecognition() {
       if (typeof webkitSpeechRecognition !== "undefined") {
         recognition = new webkitSpeechRecognition();
@@ -246,7 +238,7 @@
       });
 
       recognition.addEventListener("end", function () {
-        recognition.start();
+        recognition.start();  // Reinicia el reconocimiento al terminar
       });
     }
 
@@ -289,7 +281,7 @@
       } else if (url.includes("youtube.com/watch?v=")) {
         videoId = url.split("watch?v=")[1].split("&")[0];
       }
-      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
     }
 
     document.getElementById("closePopupBtn").addEventListener("click", () => {
@@ -297,45 +289,41 @@
       document.getElementById("adVideo").src = "";
     });
 
-    document.getElementById("startSettingsBtn").addEventListener("click", () => {
-      const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
-      const videoURL = document.getElementById("videoURL").value;
-      const embedURL = convertYouTubeURL(videoURL);
-
-      document.getElementById("adVideo").src = embedURL;
-      document.getElementById("settings").style.display = "none";
-      
-      popupTimer = setTimeout(showPopup, delay);
-      startRecognition();
-    });
-
-    window.onload = () => {
-      document.getElementById("settings").style.display = "block";
-      initCamera();
-    };
-
-    // Event listeners for controls
-    document.querySelector('#startBtn').addEventListener('click', startRecognition);
-    document.querySelector('#stopBtn').addEventListener('click', stopRecognition);
-
-    document.querySelector('#fullscreenBtn').addEventListener('click', function () {
+    document.getElementById("fullscreenBtn").addEventListener("click", () => {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
+      } else if (document.documentElement.mozRequestFullScreen) {
+        document.documentElement.mozRequestFullScreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
       }
     });
+
+    document.querySelector('#startBtn').addEventListener('click', startRecognition);
+    document.querySelector('#stopBtn').addEventListener('click', stopRecognition);
 
     document.querySelector('#settingsBtn').addEventListener('click', () => {
       const settings = document.getElementById('settings');
       settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Control de configuración de estilo
+    toggleControlsBtn.addEventListener('click', () => {
+      if (controls.style.bottom === "20px") {
+        controls.style.bottom = "-200px";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)";
+      } else {
+        controls.style.bottom = "20px";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)";
+      }
+    });
+
     document.querySelector('#bgColor').addEventListener('input', (e) => {
       document.querySelector('#transcription').style.backgroundColor = e.target.value;
     });
 
     document.querySelector('#opacity').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.backgroundColor = document.querySelector('#bgColor').value;
       document.querySelector('#transcription').style.opacity = e.target.value;
     });
 
@@ -347,16 +335,11 @@
       document.querySelector('#transcription').style.fontFamily = e.target.value;
     });
 
-    document.getElementById("toggleControlsBtn").addEventListener("click", () => {
-      const controls = document.getElementById("controls");
-      if (controls.style.bottom === "20px") {
-        controls.style.bottom = "-200px";
-        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)";
-      } else {
-        controls.style.bottom = "20px";
-        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)";
-      }
-    });
+    window.onload = () => {
+      document.getElementById("settings").style.display = "block";
+      initCamera();
+    };
   </script>
 </body>
 </html>
+
