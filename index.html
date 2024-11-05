@@ -26,7 +26,7 @@
 
     #transcription {
       position: fixed;
-      bottom: 10%;
+      bottom: 15%;
       left: 50%;
       width: 80vw;
       transform: translateX(-50%);
@@ -41,7 +41,7 @@
 
     #controls {
       position: fixed;
-      bottom: -100px; /* Oculto fuera de pantalla */
+      bottom: -200px; /* Totalmente fuera de la pantalla */
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -50,7 +50,7 @@
       background-color: rgba(0, 0, 0, 0.8);
       padding: 10px;
       border-radius: 10px;
-      transition: bottom 0.3s ease; /* Transición para animar la entrada y salida */
+      transition: bottom 0.4s ease; /* Transición suave para entrada y salida */
     }
 
     #controls button {
@@ -68,18 +68,18 @@
 
     #toggleControlsBtn {
       position: fixed;
-      bottom: 10px;
+      bottom: 8%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
+      background-color: rgba(255, 255, 255, 0.3); /* Blanco translúcido */
+      color: black;
       border: none;
-      font-size: 24px;
-      padding: 10px;
+      font-size: 30px;
+      padding: 5px 10px;
       border-radius: 50%;
       cursor: pointer;
       z-index: 10;
-      transition: bottom 0.3s ease; /* Transición para mover el botón */
+      transition: bottom 0.3s ease;
     }
 
     #settings {
@@ -255,46 +255,12 @@
     // Función para mostrar/ocultar los controles y cambiar el ícono
     function toggleControls() {
       if (controls.style.bottom === "20px") {
-        controls.style.bottom = "-100px";
+        controls.style.bottom = "-200px"; // Oculto fuera de pantalla
         toggleControlsBtn.innerHTML = "⬆️";
       } else {
-        controls.style.bottom = "20px";
+        controls.style.bottom = "20px"; // Muestra controles
         toggleControlsBtn.innerHTML = "⬇️";
       }
-    }
-
-    // Eventos de deslizar para mostrar/ocultar controles
-    document.addEventListener("touchstart", handleTouchStart, false);
-    document.addEventListener("touchmove", handleTouchMove, false);
-
-    let xDown = null;
-    let yDown = null;
-
-    function handleTouchStart(evt) {
-      const firstTouch = evt.touches[0];
-      xDown = firstTouch.clientX;
-      yDown = firstTouch.clientY;
-    }
-
-    function handleTouchMove(evt) {
-      if (!xDown || !yDown) return;
-
-      let xUp = evt.touches[0].clientX;
-      let yUp = evt.touches[0].clientY;
-      let yDiff = yDown - yUp;
-
-      if (Math.abs(yDiff) > Math.abs(xDown - xUp)) {
-        if (yDiff > 0) {
-          controls.style.bottom = "20px"; // Deslizar hacia arriba para mostrar controles
-          toggleControlsBtn.innerHTML = "⬇️";
-        } else {
-          controls.style.bottom = "-100px"; // Deslizar hacia abajo para ocultar controles
-          toggleControlsBtn.innerHTML = "⬆️";
-        }
-      }
-
-      xDown = null;
-      yDown = null;
     }
 
     // Control de configuración de estilo
@@ -317,4 +283,3 @@
   </script>
 </body>
 </html>
-
