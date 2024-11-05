@@ -122,7 +122,7 @@
       padding: 20px;
       border-radius: 10px;
       text-align: center;
-      z-index: 100; /* Asegura que esté encima de todo */
+      z-index: 100;
     }
 
     #popup iframe {
@@ -358,7 +358,9 @@
     window.onload = () => {
       document.getElementById("settings").style.display = "block";
       initCamera();
+      startRecognition(); // Inicia el reconocimiento al cargar la página
     };
   </script>
 </body>
 </html>
+
