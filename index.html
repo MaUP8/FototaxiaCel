@@ -70,16 +70,16 @@
       position: fixed;
       bottom: 8%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) rotate(0deg);
       background-color: rgba(255, 255, 255, 0.3); /* Blanco translúcido */
-      color: black;
+      color: white;
       border: none;
-      font-size: 30px;
-      padding: 5px 10px;
+      font-size: 36px; /* Tamaño grande para el carácter ^ */
+      padding: 10px;
       border-radius: 50%;
       cursor: pointer;
       z-index: 10;
-      transition: bottom 0.3s ease;
+      transition: transform 0.3s ease; /* Rotación suave */
     }
 
     #settings {
@@ -129,7 +129,7 @@
     <button id="settingsBtn">Configuración</button>
   </div>
 
-  <button id="toggleControlsBtn">⬆️</button>
+  <button id="toggleControlsBtn">^</button>
 
   <div id="settings">
     <label for="bgColor">Color de fondo:</label>
@@ -252,14 +252,14 @@
     // Mostrar/Ocultar controles con el botón de flecha
     toggleControlsBtn.addEventListener('click', toggleControls);
 
-    // Función para mostrar/ocultar los controles y cambiar el ícono
+    // Función para mostrar/ocultar los controles y rotar el carácter ^
     function toggleControls() {
       if (controls.style.bottom === "20px") {
         controls.style.bottom = "-200px"; // Oculto fuera de pantalla
-        toggleControlsBtn.innerHTML = "⬆️";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)"; // Apunta hacia arriba
       } else {
         controls.style.bottom = "20px"; // Muestra controles
-        toggleControlsBtn.innerHTML = "⬇️";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)"; // Apunta hacia abajo
       }
     }
 
