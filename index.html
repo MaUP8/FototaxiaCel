@@ -193,7 +193,7 @@
   <!-- Pop-up de anuncio -->
   <div id="popup">
     <iframe id="adVideo" src="" allow="autoplay"></iframe>
-    <p>Podrás cerrar este anuncio en <span id="countdown">5</span> segundos</p>
+    <p>Podrás cerrar este anuncio en <span id="countdown">15</span> segundos</p>
     <button id="closePopupBtn">Cerrar</button>
   </div>
 
@@ -264,8 +264,11 @@
     }
 
     function showPopup() {
+      // Pausa el reconocimiento de voz
+      stopRecognition();
+
       document.getElementById("popup").style.display = "block";
-      let countdown = 5;
+      let countdown = 15; // Tiempo de cuenta regresiva para cerrar el pop-up
       const countdownElem = document.getElementById("countdown");
       const closeBtn = document.getElementById("closePopupBtn");
 
@@ -277,7 +280,7 @@
         countdownElem.textContent = countdown;
         if (countdown <= 0) {
           clearInterval(countdownTimer);
-          closeBtn.style.display = "inline";
+          closeBtn.style.display = "inline"; // Muestra el botón de cierre después de 15 segundos
         }
       }, 1000);
     }
@@ -295,6 +298,9 @@
     document.getElementById("closePopupBtn").addEventListener("click", () => {
       document.getElementById("popup").style.display = "none";
       document.getElementById("adVideo").src = "";
+
+      // Reanuda el reconocimiento de voz al cerrar el pop-up
+      startRecognition();
     });
 
     document.getElementById("fullscreenBtn").addEventListener("click", () => {
