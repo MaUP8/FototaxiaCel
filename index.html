@@ -192,7 +192,7 @@
 
   <!-- Pop-up de anuncio -->
   <div id="popup">
-    <iframe id="adVideo" src="" allow="autoplay"></iframe>
+    <iframe id="adVideo" allow="autoplay"></iframe>
     <p>Podrás cerrar este anuncio en <span id="countdown">15</span> segundos</p>
     <button id="closePopupBtn">Cerrar</button>
   </div>
@@ -203,6 +203,7 @@
     const transcription = document.querySelector("#text");
     const controls = document.getElementById("controls");
     const toggleControlsBtn = document.getElementById("toggleControlsBtn");
+    let embedURL = "";
 
     // Función para iniciar la cámara
     function initCamera() {
@@ -267,6 +268,9 @@
       // Pausa el reconocimiento de voz
       stopRecognition();
 
+      // Asigna la URL con autoplay al iframe cuando el pop-up se muestra
+      document.getElementById("adVideo").src = embedURL;
+
       document.getElementById("popup").style.display = "block";
       let countdown = 15; // Tiempo de cuenta regresiva para cerrar el pop-up
       const countdownElem = document.getElementById("countdown");
@@ -297,7 +301,7 @@
 
     document.getElementById("closePopupBtn").addEventListener("click", () => {
       document.getElementById("popup").style.display = "none";
-      document.getElementById("adVideo").src = "";
+      document.getElementById("adVideo").src = ""; // Limpia la URL para detener el video
 
       // Reanuda el reconocimiento de voz al cerrar el pop-up
       startRecognition();
@@ -352,11 +356,9 @@
     document.getElementById("startSettingsBtn").addEventListener("click", () => {
       const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
       const videoURL = document.getElementById("videoURL").value;
-      const embedURL = convertYouTubeURL(videoURL);
+      embedURL = convertYouTubeURL(videoURL); // Guardamos la URL con autoplay para usarla al mostrar el pop-up
 
-      document.getElementById("adVideo").src = embedURL;
       document.getElementById("settings").style.display = "none";
-      
       popupTimer = setTimeout(showPopup, delay);
       startRecognition();
     });
@@ -369,4 +371,5 @@
   </script>
 </body>
 </html>
+
 
