@@ -41,7 +41,7 @@
 
     #controls {
       position: fixed;
-      bottom: 10px;
+      bottom: -200px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -50,6 +50,7 @@
       background-color: rgba(0, 0, 0, 0.8);
       padding: 10px;
       border-radius: 10px;
+      transition: bottom 0.4s ease;
       z-index: 1;
     }
 
@@ -60,6 +61,24 @@
       border: 1px solid #565252;
       padding: 8px 12px;
       border-radius: 5px;
+    }
+
+    #fullscreenBtn {
+      font-size: 24px;
+    }
+
+    #toggleControlsBtn {
+      position: fixed;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%) rotate(0deg);
+      color: rgba(255, 255, 255, 0.7);
+      border: none;
+      font-size: 36px;
+      cursor: pointer;
+      z-index: 1;
+      background: none;
+      transition: transform 0.3s ease;
     }
 
     #settings {
@@ -83,8 +102,7 @@
       color: #ddd;
     }
 
-    #settings input,
-    #settings select {
+    #settings input, #settings select {
       width: 100%;
       padding: 5px;
       margin-top: 5px;
@@ -132,7 +150,7 @@
   </style>
 </head>
 <body>
-  <video id="camera" autoplay playsinline muted></video>
+  <video id="camera" autoplay playsinline></video>
   <div id="transcription">
     <p id="text"></p>
   </div>
@@ -144,6 +162,8 @@
     <button id="settingsBtn">Configuración</button>
   </div>
 
+  <button id="toggleControlsBtn">^</button>
+
   <div id="settings">
     <label for="bgColor">Color de fondo:</label>
     <input type="color" id="bgColor" value="#000000" />
@@ -154,6 +174,14 @@
     <label for="fontSize">Tamaño de letra:</label>
     <input type="range" id="fontSize" min="2" max="10" step="0.1" value="6" />vw
 
+    <label for="fontType">Tipo de letra:</label>
+    <select id="fontType">
+      <option value="Arial">Arial</option>
+      <option value="Verdana">Verdana</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Georgia">Georgia</option>
+    </select>
+
     <label for="popupDelay">Tiempo para mostrar el pop-up (segundos):</label>
     <input type="number" id="popupDelay" min="1" value="10" />
 
@@ -162,17 +190,22 @@
     <button id="startSettingsBtn">Guardar y Comenzar</button>
   </div>
 
+  <!-- Pop-up de anuncio -->
   <div id="popup">
-    <iframe id="adVideo" allow="autoplay; fullscreen" playsinline></iframe>
+    <iframe id="adVideo" allow="autoplay"></iframe>
     <p>Podrás cerrar este anuncio en <span id="countdown">15</span> segundos</p>
     <button id="closePopupBtn">Cerrar</button>
   </div>
 
   <script>
     let recognition;
-    let embedURL = "";
     let popupTimer, countdownTimer;
+    const transcription = document.querySelector("#text");
+    const controls = document.getElementById("controls");
+    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
+    let embedURL = "";
 
+    // Función para iniciar la cámara
     function initCamera() {
       const video = document.getElementById('camera');
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -181,41 +214,79 @@
         })
         .catch(err => {
           console.error('Error al acceder a la cámara: ' + err);
-          alert('No se pudo acceder a la cámara. Asegúrate de otorgar permisos.');
         });
     }
 
+    // Función para inicializar el reconocimiento de voz
     function initSpeechRecognition() {
-      if ('webkitSpeechRecognition' in window) {
+      if (typeof webkitSpeechRecognition !== "undefined") {
         recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "es-ES";
-
-        recognition.onresult = (event) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
-
-          for (let i = 0; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript.trim();
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
-            }
-          }
-
-          document.getElementById('text').textContent = finalTranscript || interimTranscript;
-        };
-
-        recognition.onend = () => {
-          recognition.start();
-        };
-
-        recognition.start();
       } else {
-        alert('Tu navegador no soporta reconocimiento de voz.');
+        alert("Tu navegador no soporta Speech Recognition.");
+        return;
       }
+
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "es-ES";
+
+      recognition.addEventListener("result", function (e) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = 0; i < e.results.length; i++) {
+          let transcript = e.results[i][0].transcript.trim();
+          if (e.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        transcription.textContent = finalTranscript || interimTranscript;
+      });
+
+      recognition.addEventListener("end", function () {
+        recognition.start();  // Reinicia el reconocimiento al terminar
+      });
+    }
+
+    function startRecognition() {
+      if (!recognition) {
+        initSpeechRecognition();
+      }
+      recognition.start();
+    }
+
+    function stopRecognition() {
+      if (recognition) {
+        recognition.stop();
+      }
+    }
+
+    function showPopup() {
+      // Pausa el reconocimiento de voz
+      stopRecognition();
+
+      // Asigna la URL con autoplay al iframe cuando el pop-up se muestra
+      document.getElementById("adVideo").src = embedURL;
+
+      document.getElementById("popup").style.display = "block";
+      let countdown = 15; // Tiempo de cuenta regresiva para cerrar el pop-up
+      const countdownElem = document.getElementById("countdown");
+      const closeBtn = document.getElementById("closePopupBtn");
+
+      countdownElem.textContent = countdown;
+      closeBtn.style.display = "none";
+
+      countdownTimer = setInterval(() => {
+        countdown--;
+        countdownElem.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(countdownTimer);
+          closeBtn.style.display = "inline"; // Muestra el botón de cierre después de 15 segundos
+        }
+      }, 1000);
     }
 
     function convertYouTubeURL(url) {
@@ -224,69 +295,79 @@
         videoId = url.split("youtu.be/")[1].split("?")[0];
       } else if (url.includes("youtube.com/watch?v=")) {
         videoId = url.split("watch?v=")[1].split("&")[0];
-      } else if (url.includes("youtube.com/shorts/")) {
-        videoId = url.split("shorts/")[1].split("?")[0];
       }
-      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1` : url;
+      return videoId ? https://www.youtube.com/embed/${videoId}?autoplay=1 : url;
     }
 
-    function showPopup() {
-      stopRecognition();
-      document.getElementById('adVideo').src = embedURL;
+    document.getElementById("closePopupBtn").addEventListener("click", () => {
+      document.getElementById("popup").style.display = "none";
+      document.getElementById("adVideo").src = ""; // Limpia la URL para detener el video
 
-      document.getElementById('popup').style.display = 'block';
-      let countdown = 15;
-      const countdownElem = document.getElementById('countdown');
-      const closeBtn = document.getElementById('closePopupBtn');
-
-      countdownElem.textContent = countdown;
-      closeBtn.style.display = 'none';
-
-      countdownTimer = setInterval(() => {
-        countdown--;
-        countdownElem.textContent = countdown;
-        if (countdown <= 0) {
-          clearInterval(countdownTimer);
-          closeBtn.style.display = 'inline';
-        }
-      }, 1000);
-    }
-
-    document.getElementById('closePopupBtn').addEventListener('click', () => {
-      document.getElementById('popup').style.display = 'none';
-      document.getElementById('adVideo').src = '';
+      // Reanuda el reconocimiento de voz al cerrar el pop-up
       startRecognition();
     });
 
-    function stopRecognition() {
-      if (recognition) {
-        recognition.stop();
+    document.getElementById("fullscreenBtn").addEventListener("click", () => {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.mozRequestFullScreen) {
+        document.documentElement.mozRequestFullScreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
       }
-    }
+    });
 
-    function startRecognition() {
-      if (!recognition) {
-        initSpeechRecognition();
+    document.querySelector('#startBtn').addEventListener('click', startRecognition);
+    document.querySelector('#stopBtn').addEventListener('click', stopRecognition);
+
+    document.querySelector('#settingsBtn').addEventListener('click', () => {
+      const settings = document.getElementById('settings');
+      settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
+    });
+
+    toggleControlsBtn.addEventListener('click', () => {
+      if (controls.style.bottom === "20px") {
+        controls.style.bottom = "-200px";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)";
       } else {
-        recognition.start();
+        controls.style.bottom = "20px";
+        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)";
       }
-    }
+    });
 
-    document.getElementById('startSettingsBtn').addEventListener('click', () => {
-      const delay = parseInt(document.getElementById('popupDelay').value) * 1000;
-      const videoURL = document.getElementById('videoURL').value;
-      embedURL = convertYouTubeURL(videoURL);
+    document.querySelector('#bgColor').addEventListener('input', (e) => {
+      document.querySelector('#transcription').style.backgroundColor = e.target.value;
+    });
 
-      document.getElementById('settings').style.display = 'none';
+    document.querySelector('#opacity').addEventListener('input', (e) => {
+      document.querySelector('#transcription').style.opacity = e.target.value;
+    });
+
+    document.querySelector('#fontSize').addEventListener('input', (e) => {
+      document.querySelector('#transcription').style.fontSize = e.target.value + 'vw';
+    });
+
+    document.querySelector('#fontType').addEventListener('change', (e) => {
+      document.querySelector('#transcription').style.fontFamily = e.target.value;
+    });
+
+    document.getElementById("startSettingsBtn").addEventListener("click", () => {
+      const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
+      const videoURL = document.getElementById("videoURL").value;
+      embedURL = convertYouTubeURL(videoURL); // Guardamos la URL con autoplay para usarla al mostrar el pop-up
+
+      document.getElementById("settings").style.display = "none";
       popupTimer = setTimeout(showPopup, delay);
       startRecognition();
     });
 
     window.onload = () => {
+      document.getElementById("settings").style.display = "block";
       initCamera();
-      startRecognition();
+      startRecognition(); // Inicia el reconocimiento al cargar la página
     };
   </script>
 </body>
 </html>
-
