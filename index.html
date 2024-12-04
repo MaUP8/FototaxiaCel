@@ -205,7 +205,6 @@
     const toggleControlsBtn = document.getElementById("toggleControlsBtn");
     let embedURL = "";
 
-    // Función para iniciar la cámara
     function initCamera() {
       const video = document.getElementById('camera');
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -217,7 +216,6 @@
         });
     }
 
-    // Función para inicializar el reconocimiento de voz
     function initSpeechRecognition() {
       if (typeof webkitSpeechRecognition !== "undefined") {
         recognition = new webkitSpeechRecognition();
@@ -247,7 +245,7 @@
       });
 
       recognition.addEventListener("end", function () {
-        recognition.start();  // Reinicia el reconocimiento al terminar
+        recognition.start(); 
       });
     }
 
@@ -265,14 +263,11 @@
     }
 
     function showPopup() {
-      // Pausa el reconocimiento de voz
       stopRecognition();
-
-      // Asigna la URL con autoplay al iframe cuando el pop-up se muestra
       document.getElementById("adVideo").src = embedURL;
 
       document.getElementById("popup").style.display = "block";
-      let countdown = 15; // Tiempo de cuenta regresiva para cerrar el pop-up
+      let countdown = 15; 
       const countdownElem = document.getElementById("countdown");
       const closeBtn = document.getElementById("closePopupBtn");
 
@@ -284,7 +279,7 @@
         countdownElem.textContent = countdown;
         if (countdown <= 0) {
           clearInterval(countdownTimer);
-          closeBtn.style.display = "inline"; // Muestra el botón de cierre después de 15 segundos
+          closeBtn.style.display = "inline"; 
         }
       }, 1000);
     }
@@ -295,27 +290,21 @@
         videoId = url.split("youtu.be/")[1].split("?")[0];
       } else if (url.includes("youtube.com/watch?v=")) {
         videoId = url.split("watch?v=")[1].split("&")[0];
+      } else if (url.includes("youtube.com/shorts/")) {
+        videoId = url.split("shorts/")[1].split("?")[0];
       }
       return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
     }
 
     document.getElementById("closePopupBtn").addEventListener("click", () => {
       document.getElementById("popup").style.display = "none";
-      document.getElementById("adVideo").src = ""; // Limpia la URL para detener el video
-
-      // Reanuda el reconocimiento de voz al cerrar el pop-up
+      document.getElementById("adVideo").src = ""; 
       startRecognition();
     });
 
     document.getElementById("fullscreenBtn").addEventListener("click", () => {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
-      } else if (document.documentElement.mozRequestFullScreen) {
-        document.documentElement.mozRequestFullScreen();
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
-      } else if (document.documentElement.msRequestFullscreen) {
-        document.documentElement.msRequestFullscreen();
       }
     });
 
@@ -356,7 +345,7 @@
     document.getElementById("startSettingsBtn").addEventListener("click", () => {
       const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
       const videoURL = document.getElementById("videoURL").value;
-      embedURL = convertYouTubeURL(videoURL); // Guardamos la URL con autoplay para usarla al mostrar el pop-up
+      embedURL = convertYouTubeURL(videoURL);
 
       document.getElementById("settings").style.display = "none";
       popupTimer = setTimeout(showPopup, delay);
@@ -366,7 +355,7 @@
     window.onload = () => {
       document.getElementById("settings").style.display = "block";
       initCamera();
-      startRecognition(); // Inicia el reconocimiento al cargar la página
+      startRecognition(); 
     };
   </script>
 </body>
