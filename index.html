@@ -39,77 +39,6 @@
       color: white;
     }
 
-    #controls {
-      position: fixed;
-      bottom: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      background-color: rgba(0, 0, 0, 0.8);
-      padding: 10px;
-      border-radius: 10px;
-      transition: bottom 0.4s ease;
-      z-index: 1;
-    }
-
-    #controls button {
-      font-size: 18px;
-      background-color: black;
-      color: #565252;
-      border: 1px solid #565252;
-      padding: 8px 12px;
-      border-radius: 5px;
-    }
-
-    #fullscreenBtn {
-      font-size: 24px;
-    }
-
-    #toggleControlsBtn {
-      position: fixed;
-      bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%) rotate(0deg);
-      color: rgba(255, 255, 255, 0.7);
-      border: none;
-      font-size: 36px;
-      cursor: pointer;
-      z-index: 1;
-      background: none;
-      transition: transform 0.3s ease;
-    }
-
-    #settings {
-      position: fixed;
-      top: 10%;
-      left: 10%;
-      width: 80%;
-      max-width: 300px;
-      background-color: rgba(0, 0, 0, 0.9);
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      z-index: 10;
-      color: white;
-    }
-
-    #settings label {
-      display: block;
-      font-size: 14px;
-      margin-top: 10px;
-      color: #ddd;
-    }
-
-    #settings input, #settings select {
-      width: 100%;
-      padding: 5px;
-      margin-top: 5px;
-      font-size: 14px;
-      color: black;
-    }
-
     #popup {
       display: none;
       position: fixed;
@@ -150,61 +79,23 @@
   </style>
 </head>
 <body>
-  <video id="camera" autoplay playsinline></video>
+  <video id="camera" autoplay playsinline muted></video>
   <div id="transcription">
     <p id="text"></p>
   </div>
 
-  <div id="controls">
-    <button id="startBtn">Iniciar</button>
-    <button id="stopBtn">Detener</button>
-    <button id="fullscreenBtn">Pantalla completa</button>
-    <button id="settingsBtn">Configuración</button>
-  </div>
-
-  <button id="toggleControlsBtn">^</button>
-
-  <div id="settings">
-    <label for="bgColor">Color de fondo:</label>
-    <input type="color" id="bgColor" value="#000000" />
-
-    <label for="opacity">Opacidad del fondo:</label>
-    <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.7" />
-
-    <label for="fontSize">Tamaño de letra:</label>
-    <input type="range" id="fontSize" min="2" max="10" step="0.1" value="6" />vw
-
-    <label for="fontType">Tipo de letra:</label>
-    <select id="fontType">
-      <option value="Arial">Arial</option>
-      <option value="Verdana">Verdana</option>
-      <option value="Courier New">Courier New</option>
-      <option value="Georgia">Georgia</option>
-    </select>
-
-    <label for="popupDelay">Tiempo para mostrar el pop-up (segundos):</label>
-    <input type="number" id="popupDelay" min="1" value="10" />
-
-    <label for="videoURL">URL del video de YouTube:</label>
-    <input type="url" id="videoURL" placeholder="https://youtu.be/VIDEO_ID" required />
-    <button id="startSettingsBtn">Guardar y Comenzar</button>
-  </div>
-
-  <!-- Pop-up de anuncio -->
   <div id="popup">
-    <iframe id="adVideo" allow="autoplay"></iframe>
+    <iframe id="adVideo" allow="autoplay; fullscreen" playsinline></iframe>
     <p>Podrás cerrar este anuncio en <span id="countdown">15</span> segundos</p>
     <button id="closePopupBtn">Cerrar</button>
   </div>
 
   <script>
     let recognition;
-    let popupTimer, countdownTimer;
-    const transcription = document.querySelector("#text");
-    const controls = document.getElementById("controls");
-    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
     let embedURL = "";
+    let popupTimer, countdownTimer;
 
+    // Inicializar la cámara
     function initCamera() {
       const video = document.getElementById('camera');
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -213,77 +104,45 @@
         })
         .catch(err => {
           console.error('Error al acceder a la cámara: ' + err);
+          alert('No se pudo acceder a la cámara. Asegúrate de otorgar permisos.');
         });
     }
 
+    // Inicializar el reconocimiento de voz
     function initSpeechRecognition() {
-      if (typeof webkitSpeechRecognition !== "undefined") {
+      if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
-      } else {
-        alert("Tu navegador no soporta Speech Recognition.");
-        return;
-      }
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "es-ES";
 
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "es-ES";
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
 
-      recognition.addEventListener("result", function (e) {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
-        for (let i = 0; i < e.results.length; i++) {
-          let transcript = e.results[i][0].transcript.trim();
-          if (e.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-          } else {
-            interimTranscript += transcript;
+          for (let i = 0; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript.trim();
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
+            }
           }
-        }
 
-        transcription.textContent = finalTranscript || interimTranscript;
-      });
+          document.getElementById('text').textContent = finalTranscript || interimTranscript;
+        };
 
-      recognition.addEventListener("end", function () {
-        recognition.start(); 
-      });
-    }
+        recognition.onend = () => {
+          recognition.start(); // Reiniciar automáticamente
+        };
 
-    function startRecognition() {
-      if (!recognition) {
-        initSpeechRecognition();
-      }
-      recognition.start();
-    }
-
-    function stopRecognition() {
-      if (recognition) {
-        recognition.stop();
+        recognition.start();
+      } else {
+        alert('Tu navegador no soporta reconocimiento de voz.');
       }
     }
 
-    function showPopup() {
-      stopRecognition();
-      document.getElementById("adVideo").src = embedURL;
-
-      document.getElementById("popup").style.display = "block";
-      let countdown = 15; 
-      const countdownElem = document.getElementById("countdown");
-      const closeBtn = document.getElementById("closePopupBtn");
-
-      countdownElem.textContent = countdown;
-      closeBtn.style.display = "none";
-
-      countdownTimer = setInterval(() => {
-        countdown--;
-        countdownElem.textContent = countdown;
-        if (countdown <= 0) {
-          clearInterval(countdownTimer);
-          closeBtn.style.display = "inline"; 
-        }
-      }, 1000);
-    }
-
+    // Convertir URL de YouTube al formato embebido
     function convertYouTubeURL(url) {
       let videoId;
       if (url.includes("youtu.be/")) {
@@ -293,72 +152,71 @@
       } else if (url.includes("youtube.com/shorts/")) {
         videoId = url.split("shorts/")[1].split("?")[0];
       }
-      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
+      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1` : url;
     }
 
-    document.getElementById("closePopupBtn").addEventListener("click", () => {
-      document.getElementById("popup").style.display = "none";
-      document.getElementById("adVideo").src = ""; 
+    // Mostrar el pop-up con el video
+    function showPopup() {
+      stopRecognition();
+      document.getElementById('adVideo').src = embedURL;
+
+      document.getElementById('popup').style.display = 'block';
+      let countdown = 15;
+      const countdownElem = document.getElementById('countdown');
+      const closeBtn = document.getElementById('closePopupBtn');
+
+      countdownElem.textContent = countdown;
+      closeBtn.style.display = 'none';
+
+      countdownTimer = setInterval(() => {
+        countdown--;
+        countdownElem.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(countdownTimer);
+          closeBtn.style.display = 'inline';
+        }
+      }, 1000);
+    }
+
+    // Cerrar el pop-up y reanudar reconocimiento de voz
+    document.getElementById('closePopupBtn').addEventListener('click', () => {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('adVideo').src = '';
       startRecognition();
     });
 
-    document.getElementById("fullscreenBtn").addEventListener("click", () => {
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
+    // Detener el reconocimiento de voz
+    function stopRecognition() {
+      if (recognition) {
+        recognition.stop();
       }
-    });
+    }
 
-    document.querySelector('#startBtn').addEventListener('click', startRecognition);
-    document.querySelector('#stopBtn').addEventListener('click', stopRecognition);
-
-    document.querySelector('#settingsBtn').addEventListener('click', () => {
-      const settings = document.getElementById('settings');
-      settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
-    });
-
-    toggleControlsBtn.addEventListener('click', () => {
-      if (controls.style.bottom === "20px") {
-        controls.style.bottom = "-200px";
-        toggleControlsBtn.style.transform = "translateX(-50%) rotate(0deg)";
+    // Iniciar el reconocimiento de voz
+    function startRecognition() {
+      if (!recognition) {
+        initSpeechRecognition();
       } else {
-        controls.style.bottom = "20px";
-        toggleControlsBtn.style.transform = "translateX(-50%) rotate(180deg)";
+        recognition.start();
       }
-    });
+    }
 
-    document.querySelector('#bgColor').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.backgroundColor = e.target.value;
-    });
-
-    document.querySelector('#opacity').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.opacity = e.target.value;
-    });
-
-    document.querySelector('#fontSize').addEventListener('input', (e) => {
-      document.querySelector('#transcription').style.fontSize = e.target.value + 'vw';
-    });
-
-    document.querySelector('#fontType').addEventListener('change', (e) => {
-      document.querySelector('#transcription').style.fontFamily = e.target.value;
-    });
-
-    document.getElementById("startSettingsBtn").addEventListener("click", () => {
-      const delay = parseInt(document.getElementById("popupDelay").value) * 1000;
-      const videoURL = document.getElementById("videoURL").value;
-      embedURL = convertYouTubeURL(videoURL);
-
-      document.getElementById("settings").style.display = "none";
-      popupTimer = setTimeout(showPopup, delay);
+    // Configurar la URL del video y programar el pop-up
+    function startWithVideo(url, delay) {
+      embedURL = convertYouTubeURL(url);
+      popupTimer = setTimeout(showPopup, delay * 1000);
       startRecognition();
-    });
+    }
 
     window.onload = () => {
-      document.getElementById("settings").style.display = "block";
       initCamera();
-      startRecognition(); 
+      startRecognition();
+      const videoURL = prompt("Introduce la URL del video de YouTube:");
+      const delay = parseInt(prompt("Introduce el tiempo de retraso para mostrar el video (en segundos):"), 10);
+      if (videoURL && delay) {
+        startWithVideo(videoURL, delay);
+      }
     };
   </script>
 </body>
 </html>
-
-
