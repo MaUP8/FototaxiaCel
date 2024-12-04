@@ -39,6 +39,59 @@
       color: white;
     }
 
+    #controls {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 1;
+    }
+
+    #controls button {
+      font-size: 18px;
+      background-color: black;
+      color: #565252;
+      border: 1px solid #565252;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+
+    #settings {
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      max-width: 300px;
+      background-color: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      z-index: 10;
+      color: white;
+    }
+
+    #settings label {
+      display: block;
+      font-size: 14px;
+      margin-top: 10px;
+      color: #ddd;
+    }
+
+    #settings input,
+    #settings select {
+      width: 100%;
+      padding: 5px;
+      margin-top: 5px;
+      font-size: 14px;
+      color: black;
+    }
+
     #popup {
       display: none;
       position: fixed;
@@ -84,6 +137,31 @@
     <p id="text"></p>
   </div>
 
+  <div id="controls">
+    <button id="startBtn">Iniciar</button>
+    <button id="stopBtn">Detener</button>
+    <button id="fullscreenBtn">Pantalla completa</button>
+    <button id="settingsBtn">Configuración</button>
+  </div>
+
+  <div id="settings">
+    <label for="bgColor">Color de fondo:</label>
+    <input type="color" id="bgColor" value="#000000" />
+
+    <label for="opacity">Opacidad del fondo:</label>
+    <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.7" />
+
+    <label for="fontSize">Tamaño de letra:</label>
+    <input type="range" id="fontSize" min="2" max="10" step="0.1" value="6" />vw
+
+    <label for="popupDelay">Tiempo para mostrar el pop-up (segundos):</label>
+    <input type="number" id="popupDelay" min="1" value="10" />
+
+    <label for="videoURL">URL del video de YouTube:</label>
+    <input type="url" id="videoURL" placeholder="https://youtu.be/VIDEO_ID" required />
+    <button id="startSettingsBtn">Guardar y Comenzar</button>
+  </div>
+
   <div id="popup">
     <iframe id="adVideo" allow="autoplay; fullscreen" playsinline></iframe>
     <p>Podrás cerrar este anuncio en <span id="countdown">15</span> segundos</p>
@@ -95,7 +173,6 @@
     let embedURL = "";
     let popupTimer, countdownTimer;
 
-    // Inicializar la cámara
     function initCamera() {
       const video = document.getElementById('camera');
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -108,7 +185,6 @@
         });
     }
 
-    // Inicializar el reconocimiento de voz
     function initSpeechRecognition() {
       if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
@@ -133,7 +209,7 @@
         };
 
         recognition.onend = () => {
-          recognition.start(); // Reiniciar automáticamente
+          recognition.start();
         };
 
         recognition.start();
@@ -142,7 +218,6 @@
       }
     }
 
-    // Convertir URL de YouTube al formato embebido
     function convertYouTubeURL(url) {
       let videoId;
       if (url.includes("youtu.be/")) {
@@ -155,7 +230,6 @@
       return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1` : url;
     }
 
-    // Mostrar el pop-up con el video
     function showPopup() {
       stopRecognition();
       document.getElementById('adVideo').src = embedURL;
@@ -178,21 +252,18 @@
       }, 1000);
     }
 
-    // Cerrar el pop-up y reanudar reconocimiento de voz
     document.getElementById('closePopupBtn').addEventListener('click', () => {
       document.getElementById('popup').style.display = 'none';
       document.getElementById('adVideo').src = '';
       startRecognition();
     });
 
-    // Detener el reconocimiento de voz
     function stopRecognition() {
       if (recognition) {
         recognition.stop();
       }
     }
 
-    // Iniciar el reconocimiento de voz
     function startRecognition() {
       if (!recognition) {
         initSpeechRecognition();
@@ -201,22 +272,21 @@
       }
     }
 
-    // Configurar la URL del video y programar el pop-up
-    function startWithVideo(url, delay) {
-      embedURL = convertYouTubeURL(url);
-      popupTimer = setTimeout(showPopup, delay * 1000);
+    document.getElementById('startSettingsBtn').addEventListener('click', () => {
+      const delay = parseInt(document.getElementById('popupDelay').value) * 1000;
+      const videoURL = document.getElementById('videoURL').value;
+      embedURL = convertYouTubeURL(videoURL);
+
+      document.getElementById('settings').style.display = 'none';
+      popupTimer = setTimeout(showPopup, delay);
       startRecognition();
-    }
+    });
 
     window.onload = () => {
       initCamera();
       startRecognition();
-      const videoURL = prompt("Introduce la URL del video de YouTube:");
-      const delay = parseInt(prompt("Introduce el tiempo de retraso para mostrar el video (en segundos):"), 10);
-      if (videoURL && delay) {
-        startWithVideo(videoURL, delay);
-      }
     };
   </script>
 </body>
 </html>
+
